@@ -1,5 +1,5 @@
 import { AuthenticationService, BadRequestError } from "@shoppingapp/common";
-import { CreateUserDto } from "./dtos/auth.dto";
+import { AuthDto } from "./dtos/auth.dto";
 import { UserService, userService } from "./user/user.service";
 import { NextFunction } from "express";
 
@@ -9,20 +9,18 @@ export class AuthService {
     public authenticationService: AuthenticationService
   ) {}
 
-  async signup(createUserDto: CreateUserDto, errCallback: NextFunction) {
-    const existingUser = await this.userService.findOneByEmail(
-      createUserDto.email
-    );
+  async signup(authDto: AuthDto, errCallback: NextFunction) {
+    const existingUser = await this.userService.findOneByEmail(authDto.email);
 
     if (existingUser)
       return errCallback(
         new BadRequestError("A User with that email already exists")
       );
 
-    const user = await this.userService.create(createUserDto);
+    const user = await this.userService.create(authDto);
     const jwt = this.authenticationService.generateJwt(
       {
-        email: createUserDto.email,
+        email: authDto.email,
         userId: user.id,
       },
       process.env.JWT_KEY!
@@ -31,12 +29,30 @@ export class AuthService {
     return jwt;
   }
 
-  async signin(email: string, password: string) {
-    const existingUser = await this.userService.findOneByEmail(email);
-    if (existingUser) {
-      return;
-    }
+  async signin(authDto: AuthDto, errCallback: NextFunction) {
+    const user = await this.userService.findOneByEmail(authDto.email);
+    if (!user) return errCallback(new BadRequestError("Invalid credentials"));
+
+    const samePwd = this.authenticationService.pwdCompare(
+      user.password,
+      authDto.password
+    );
+    if (!samePwd)
+      return errCallback(new BadRequestError("Password is incorrect"));
+
+    const jwt = this.authenticationService.generateJwt(
+      {
+        email: authDto.email,
+        userId: user.id,
+      },
+      process.env.JWT_KEY!
+    );
+
+    return jwt;
   }
 }
 
-export const authService = new AuthService(userService);
+export const authService = new AuthService(
+  userService,
+  new AuthenticationService()
+);

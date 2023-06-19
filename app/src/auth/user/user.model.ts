@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import { UserModel, UserDoc } from "@shoppingapp/common";
+import mongoose, { Schema, Model, Document } from "mongoose";
+import { UserModel, UserDoc, AuthenticationService } from "@shoppingapp/common";
 
-const schema = new mongoose.Schema(
+const schema: Schema<UserDoc> = new mongoose.Schema(
   {
     email: {
       type: String,
@@ -23,4 +23,16 @@ const schema = new mongoose.Schema(
   }
 );
 
-export const User = mongoose.model<UserDoc, UserModel>("User", schema);
+schema.pre<UserDoc>("save", async function (done) {
+  const authenticationService = new AuthenticationService();
+  if (this.isModified("password") || this.isNew) {
+    const hashedPwd = await authenticationService.pwdToHash(
+      this.get("password")
+    );
+    this.set("password", hashedPwd);
+  }
+
+  done();
+});
+
+export const Use = mongoose.model<UserDoc, UserModel>("User", schema);

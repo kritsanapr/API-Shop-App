@@ -7,6 +7,8 @@ dotenv.config();
 
 import { Application } from "express";
 import mongoose from "mongoose";
+import { errorHandler } from "@shoppingapp/common";
+import { authRouter } from "./auth/auth.routers";
 
 export class AppModule {
   constructor(public app: Application) {
@@ -21,6 +23,11 @@ export class AppModule {
         secure: false,
       })
     );
+
+    app.use(authRouter);
+    app.use(errorHandler);
+
+    Object.setPrototypeOf(this, AppModule.prototype);
   }
 
   async start() {
