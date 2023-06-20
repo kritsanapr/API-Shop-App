@@ -1,6 +1,6 @@
 ## API Shop App
 
-### Servicess
+### Services
 
 - **Buyer Service**
   - User can add products to his shopping cart, and then he can pay for them using stripe chackout service. each order will be saved in the database.
