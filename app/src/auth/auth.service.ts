@@ -9,13 +9,11 @@ export class AuthService {
     public authenticationService: AuthenticationService
   ) {}
 
-  async signup(authDto: AuthDto, errCallback: NextFunction) {
+  async signup(authDto: AuthDto) {
     const existingUser = await this.userService.findOneByEmail(authDto.email);
 
     if (existingUser)
-      return errCallback(
-        new BadRequestError("A User with that email already exists")
-      );
+      return { message: "A User with that email already exists" };
 
     const user = await this.userService.create(authDto);
     const jwt = this.authenticationService.generateJwt(
@@ -26,19 +24,19 @@ export class AuthService {
       process.env.JWT_KEY!
     );
 
-    return jwt;
+    return { jwt };
   }
 
-  async signin(authDto: AuthDto, errCallback: NextFunction) {
+  async signin(authDto: AuthDto) {
     const user = await this.userService.findOneByEmail(authDto.email);
-    if (!user) return errCallback(new BadRequestError("Invalid credentials"));
+
+    if (!user) return { message: "Invalid credentials" };
 
     const samePwd = this.authenticationService.pwdCompare(
       user.password,
       authDto.password
     );
-    if (!samePwd)
-      return errCallback(new BadRequestError("Password is incorrect"));
+    if (!samePwd) return { message: "Password is incorrect" };
 
     const jwt = this.authenticationService.generateJwt(
       {
@@ -48,7 +46,7 @@ export class AuthService {
       process.env.JWT_KEY!
     );
 
-    return jwt;
+    return { jwt };
   }
 }
 
