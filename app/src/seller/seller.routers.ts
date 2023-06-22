@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { BadRequestError, Uploader, UploaderMiddlewareOptions } from "@shoppingapp/common";
+import { BadRequestError, Uploader, UploaderMiddlewareOptions, requireAuth } from "@shoppingapp/common";
 import { sellerService } from "./seller.service";
 
 const uploader = new Uploader();
@@ -12,7 +12,7 @@ const uploadMultipleFiles = uploader.uploadMultipleFiles(middlewareOptions);
 
 const router = Router();
 
-router.post("/product/new", uploadMultipleFiles, async (req: Request, res: Response, next: NextFunction) => {
+router.post("/product/new", requireAuth, uploadMultipleFiles, async (req: Request, res: Response, next: NextFunction) => {
     const { title, price } = req.body;
 
     if (!req.files) return next(new BadRequestError("images are required | you must provide at least one image"))

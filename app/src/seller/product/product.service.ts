@@ -1,4 +1,4 @@
-import { ProductModel } from "@shoppingapp/common";
+import { ProductModel, uploadDir } from "@shoppingapp/common";
 import { Product } from "./product.model";
 import { CreateProductDto } from '../dtos/product.dto';
 import fs from 'fs';
@@ -35,8 +35,8 @@ export class ProductService {
         }
 
         return images.map((file) => {
-            let srcObj = { src: this.generateBase64Url(file.mimetype, file.buffer) };
-            fs.unlink(path.join('upload/' + file.filename), () => { })
+            let srcObj = { src: this.generateBase64Url(file.mimetype, fs.readFileSync(path.join(uploadDir + file.filename))) };
+            fs.unlink(path.join(uploadDir + file.filename), () => { })
             return srcObj;
         })
     }
