@@ -8,7 +8,9 @@ dotenv.config();
 import { Application } from "express";
 import mongoose from "mongoose";
 import { errorHandler } from "@shoppingapp/common";
+import { currentUser } from "@shoppingapp/common";
 import { authRouter } from "./auth/auth.routers";
+import { sellerRouter } from "./seller/seller.routers";
 
 export class AppModule {
   constructor(public app: Application) {
@@ -24,8 +26,7 @@ export class AppModule {
       })
     );
 
-    app.use(authRouter);
-    app.use(errorHandler);
+
 
     Object.setPrototypeOf(this, AppModule.prototype);
   }
@@ -47,8 +48,14 @@ export class AppModule {
       throw new Error("Database connection failed");
     }
 
+
+    this.app.use(currentUser(process.env.JWT_KEY!))
+    this.app.use(authRouter);
+    this.app.use(sellerRouter);
+    this.app.use(errorHandler);
+
     this.app.listen(process.env.PORT || 8080, () =>
-      console.log(`Listening on port ${process.env.PORT || 8080}!`)
+      console.log(`Listening on port http://localhost:${process.env.PORT || 8080}!`)
     );
   }
 }
