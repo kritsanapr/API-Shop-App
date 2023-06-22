@@ -1,5 +1,5 @@
 import { ProductService, productService } from './product/product.service';
-import { CreateProductDto, UpdateProductDto } from './dtos/product.dto';
+import { CreateProductDto, UpdateProductDto, DeleteProductDto } from './dtos/product.dto';
 import { BadRequestError, NotAuthorizedError } from '@shoppingapp/common';
 export class SellerService {
     constructor(public productService: ProductService) { }
@@ -15,9 +15,18 @@ export class SellerService {
         if (product.user.toString() !== updateProductDto.userId) {
             throw new NotAuthorizedError();
         }
-
         return await this.productService.updateProduct(updateProductDto);
 
+    }
+
+    async deleteProduct(deleteProductDto: DeleteProductDto) {
+        if (!deleteProductDto.productId) throw new BadRequestError('Product id is required');
+        const product = await this.productService.getOneById(deleteProductDto.productId);
+        if (!product) throw new BadRequestError('Product not found');
+        if (product.user.toString() !== deleteProductDto.userId) {
+            throw new NotAuthorizedError();
+        }
+        return await this.productService.deleteProduct(deleteProductDto);
     }
 }
 

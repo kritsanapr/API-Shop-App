@@ -1,6 +1,6 @@
 import { ProductModel, uploadDir } from "@shoppingapp/common";
 import { Product } from "./product.model";
-import { CreateProductDto, UpdateProductDto } from '../dtos/product.dto';
+import { CreateProductDto, UpdateProductDto, DeleteProductDto } from '../dtos/product.dto';
 import fs from 'fs';
 import path from 'path';
 
@@ -37,6 +37,10 @@ export class ProductService {
         }, {
             new: true
         })
+    }
+
+    async deleteProduct(deleteProductDto: DeleteProductDto) {
+        return await this.productModel.findOneAndDelete({ _id: deleteProductDto.productId })
     }
 
     generateBase64Url(contentType: String, buffer: Buffer) {
