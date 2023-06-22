@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { BadRequestError, Uploader, UploaderMiddlewareOptions } from "@shoppingapp/common";
+import { sellerService } from "./seller.service";
 
 const uploader = new Uploader();
 const middlewareOptions: UploaderMiddlewareOptions = {
@@ -18,8 +19,8 @@ router.post("/product/new", uploadMultipleFiles, async (req: Request, res: Respo
 
     if (req.uploaderError) return next(new BadRequestError(req.uploaderError.message))
 
-    // Create product
+    const product = sellerService.addProduct({ title, price, files: req.files, userId: req.currentUser!.userId })
 
-    // Send product to client
+    res.status(201).send(product);
 
 })
