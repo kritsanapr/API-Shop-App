@@ -1,6 +1,6 @@
 import { ProductModel, uploadDir } from "@shoppingapp/common";
 import { Product } from "./product.model";
-import { CreateProductDto, UpdateProductDto, DeleteProductDto } from '../dtos/product.dto';
+import { CreateProductDto, UpdateProductDto, DeleteProductDto, AddImagesDto, DeleteImageDto } from '../dtos/product.dto';
 import fs from 'fs';
 import path from 'path';
 
@@ -42,6 +42,21 @@ export class ProductService {
     async deleteProduct(deleteProductDto: DeleteProductDto) {
         return await this.productModel.findOneAndDelete({ _id: deleteProductDto.productId })
     }
+
+
+    async addImages(addImagesDto: AddImagesDto) {
+        const images = this.generateProductImages(addImagesDto.files);
+        return await this.productModel.findOneAndUpdate({ _id: addImagesDto.productId },
+            { $push: { images: { $each: images } } }, { new: true })
+    }
+
+
+    async deleteImages(deleteImageDto: DeleteImageDto) {
+        return await this.productModel.findOneAndUpdate({ _id: deleteImageDto.productId },
+            { $pull: { images: { _id: { $in: deleteImageDto.imagesId } } } }, { new: true })
+    }
+
+
 
     generateBase64Url(contentType: String, buffer: Buffer) {
         return `data:${contentType};base64,${buffer.toString('base64')}`

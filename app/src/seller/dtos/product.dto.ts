@@ -18,3 +18,15 @@ export interface DeleteProductDto {
     productId: string;
     userId: string;
 }
+
+export interface AddImagesDto {
+    userId: string;
+    productId: string;
+    files: Request['files']
+}
+
+export interface DeleteImageDto {
+    productId: string;
+    userId: string;
+    imagesId: Array<string>
+}
