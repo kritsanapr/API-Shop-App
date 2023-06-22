@@ -8,15 +8,17 @@ export class ProductService {
     constructor(public productModel: ProductModel) { }
 
     async create(createProductDto: CreateProductDto) {
+        const images = this.generateProductImages(createProductDto.files);
         const product = new this.productModel({
             title: createProductDto.title,
             price: createProductDto.price,
             user: createProductDto.userId,
             images: [{
-                src: ''
+                src: images
             }]
         });
-        return product.save();
+
+        return await product.save();
     }
 
     generateBase64Url(contentType: String, buffer: Buffer) {
