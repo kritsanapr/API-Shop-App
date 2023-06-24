@@ -11,6 +11,10 @@
 
 ![Alt text](./assets/image.png)
 
+### Cart Service
+
+![Alt text](image-1.png)
+
 ### API shop app with express.
 
 #### Stack
