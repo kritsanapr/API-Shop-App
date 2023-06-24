@@ -14,6 +14,7 @@ const schema: Schema = new mongoose.Schema({
     }],
     totalPrice: {
         type: Number,
+        default: 0,
         required: true
     }
 })
