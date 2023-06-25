@@ -9,11 +9,15 @@
 - **Auth Service\_**
   - User should create an account to buy or sell products, but for the buyer, an account is only required if they want to make a payment.
 
-![Alt text](./assets/image.png)
+![Alt text](./assets/services-image.png)
 
 ### Cart Service
 
-![Alt text](image-1.png)
+![Alt text](./assets/image-1.png)
+
+![Alt text](./assets/cart-service-image.png)
+
+![Alt text](./assets/update-cart-product.png)
 
 ### API shop app with express.
 

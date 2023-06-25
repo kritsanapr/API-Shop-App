@@ -1,7 +1,7 @@
 import { CartModel, CartProductModel, ProductDoc } from '@shoppingapp/common';
 import { CartProduct } from './cart-product.model';
 import { Cart } from './cart.model';
-import { AddProductToCartDto, CreateCartProductDto, RemoveProductFromCartDto } from './dtos/cart.dto';
+import { AddProductToCartDto, CreateCartProductDto, RemoveProductFromCartDto, UpdateCartProducQuantitytDto } from './dtos/cart.dto';
 export class CartService {
     constructor(
         public cartModel: CartModel,
@@ -11,6 +11,11 @@ export class CartService {
 
     async findOneByUserId(userId: string) {
         return await this.cartModel.findOne({ user: userId });
+    }
+
+
+    async getCartProductById(cartProductId: string, cartId: string) {
+        return await this.cartProductModel.findOne({ productId: cartProductId, cart: cartId })
     }
 
     async createCart(userId: string) {
@@ -43,10 +48,12 @@ export class CartService {
             { $pull: { products: cartProduct._id }, $inc: { totalPrice: -cartProduct.quantity * cartProduct.product.price } }, { new: true });
     }
 
-    async updateProductQuantity(cartId: string, productId: string, options: { inc: boolean, amount: number }) {
-        const { inc, amount } = options;
+    async updateProductQuantity(updateCartProducQuantitytDto: UpdateCartProducQuantitytDto) {
+        const { inc, amount } = updateCartProducQuantitytDto.options;
+        const { productId, cartId } = updateCartProducQuantitytDto;
         const cartProduct = await this.cartProductModel.findOne({ product: productId });
         if (!cartProduct) return null;
+        console.log(cartProduct.quantity, amount, inc)
 
         if (cartProduct.quantity < amount && !inc) {
             return await this.removeProductFromCart({ cartId, productId });
@@ -60,7 +67,6 @@ export class CartService {
             { $inc: { totalPrice: newPrice } }, { new: true });
 
         return updatedCart;
-
     }
 
     async addProduct(addProductToCartDto: AddProductToCartDto, product: ProductDoc) {
@@ -70,7 +76,7 @@ export class CartService {
         //  if the product in cart => update quantity += 1
         const isProductInCart = cart && await this.isProductInCart(cart._id, productId);
 
-        if (isProductInCart && cart) return this.updateProductQuantity(cart._id, productId, { inc: true, amount: quantity })
+        if (isProductInCart && cart) return this.updateProductQuantity({ cartId: cart._id, productId, options: { inc: true, amount: quantity } })
 
 
         if (!cart) cart = await this.createCart(userId);
@@ -80,6 +86,8 @@ export class CartService {
         return await this.cartModel.findOneAndUpdate({ _id: cart._id },
             { $push: { products: cartProduct._id }, $inc: { totalPrice: product.price * quantity } }, { new: true });
     }
+
+
 }
 
 

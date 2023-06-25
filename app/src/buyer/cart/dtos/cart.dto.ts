@@ -15,3 +15,10 @@ export interface RemoveProductFromCartDto {
     cartId: string;
     productId: string;
 }
+
+
+export interface UpdateCartProducQuantitytDto {
+    cartId: string;
+    productId: string;
+    options: { inc: boolean, amount: number }
+}
