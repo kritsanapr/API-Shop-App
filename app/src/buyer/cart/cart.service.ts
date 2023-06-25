@@ -36,6 +36,10 @@ export class CartService {
         return !!(await this.cartProductModel.findOneAndDelete({ cart: cartId, product: product }))
     }
 
+    async getCart(cartId: string) {
+        return await this.cartModel.findOne({ _id: cartId })
+    }
+
     async removeProductFromCart(removeProductFromCartDto: RemoveProductFromCartDto) {
         const { cartId, productId } = removeProductFromCartDto;
         const cartProduct = await this.cartProductModel.findOneAndDelete({ product: productId });
@@ -63,10 +67,10 @@ export class CartService {
             { $inc: { quantity: inc ? amount : -amount } }, { new: true }).populate('product');
 
         const newPrice = inc ? updateCartProduct!.product.price * amount : -updateCartProduct!.product.price * amount;
-        const updatedCart = await this.cartModel.findOneAndUpdate({ _id: cartId },
+        return await this.cartModel.findOneAndUpdate({ _id: cartId },
             { $inc: { totalPrice: newPrice } }, { new: true });
 
-        return updatedCart;
+
     }
 
     async addProduct(addProductToCartDto: AddProductToCartDto, product: ProductDoc) {
