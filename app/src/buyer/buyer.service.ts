@@ -3,8 +3,14 @@ import { CartService, cartService } from "./cart/cart.service";
 import { AddProductToCartDto, RemoveProductFromCartDto, UpdateCartProducQuantitytDto } from "./cart/dtos/cart.dto";
 import { BadRequestError, NotAuthorizedError } from "@shoppingapp/common";
 
+import Stripe from "stripe"
+
+
 export class BuyerService {
-    constructor(public cartService: CartService, public productService: ProductService) { }
+    constructor(
+        public cartService: CartService,
+        public productService: ProductService,
+        public stripeService: Stripe) { }
 
     async addProductToCart(addProductToCart: AddProductToCartDto) {
         const product = await this.productService.getOneById(addProductToCart.productId)
@@ -44,6 +50,40 @@ export class BuyerService {
 
         return cart
     }
+
+    async checkout(userId: string, cardToken: string, userEmail: string) {
+        const cart = await this.cartService.findOneByUserId(userId)
+        if (!cart) return new BadRequestError('your cart is empty')
+        if (cart.products.length === 0) return new BadRequestError('Your cart is empty')
+
+        const { id } = await this.stripeService.customers.create({
+            email: userEmail,
+            source: cardToken,
+        })
+
+        if (!id) return new BadRequestError('could not process your payment')
+
+        const charge = await this.stripeService.charges.create({
+            amount: cart.totalPrice * 100,
+            currency: 'usd',
+            customer: id
+        })
+
+        if (!charge) return new BadRequestError('Invalide data! Could not process your payment')
+
+        // Creaet new order 
+
+        // clear the cart
+
+        return charge
+
+    }
+
+
+
+
 }
 
-export const buyerService = new BuyerService(cartService, productService)
+export const buyerService = new BuyerService(cartService, productService, new Stripe(process.env.STRIPE_KEY!, {
+    apiVersion: '2022-11-15',
+}))
