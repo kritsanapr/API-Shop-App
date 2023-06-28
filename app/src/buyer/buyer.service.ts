@@ -51,22 +51,32 @@ export class BuyerService {
         return cart
     }
 
+
     async checkout(userId: string, cardToken: string, userEmail: string) {
         const cart = await this.cartService.findOneByUserId(userId)
         if (!cart) return new BadRequestError('your cart is empty')
         if (cart.products.length === 0) return new BadRequestError('Your cart is empty')
 
-        const { id } = await this.stripeService.customers.create({
-            email: userEmail,
-            source: cardToken,
-        })
+        let customer_id: string;
 
-        if (!id) return new BadRequestError('could not process your payment')
+        if (cart.customer_id) {
+            customer_id = cart.customer_id
+        } else {
+            const { id } = await this.stripeService.customers.create({
+                email: userEmail,
+                source: cardToken,
+            })
+            customer_id = id;
+            await cart.set({ customer_id }).save()
+        }
+
+
+        if (!customer_id) return new BadRequestError('could not process your payment')
 
         const charge = await this.stripeService.charges.create({
             amount: cart.totalPrice * 100,
             currency: 'usd',
-            customer: id
+            customer: customer_id
         })
 
         if (!charge) return new BadRequestError('Invalide data! Could not process your payment')
@@ -74,6 +84,7 @@ export class BuyerService {
         // Creaet new order 
 
         // clear the cart
+        await this.cartService.cleaerCart(userId, cartId: cart._id)
 
         return charge
 
