@@ -2,6 +2,7 @@ import { ProductService, productService } from "src/seller/product/product.servi
 import { CartService, cartService } from "./cart/cart.service";
 import { AddProductToCartDto, RemoveProductFromCartDto, UpdateCartProducQuantitytDto } from "./cart/dtos/cart.dto";
 import { BadRequestError, NotAuthorizedError } from "@shoppingapp/common";
+import { OrderService, orderService } from "./order/order.service";
 
 import Stripe from "stripe"
 
@@ -10,7 +11,9 @@ export class BuyerService {
     constructor(
         public cartService: CartService,
         public productService: ProductService,
-        public stripeService: Stripe) { }
+        public stripeService: Stripe,
+        public orderService: OrderService
+    ) { }
 
     async addProductToCart(addProductToCart: AddProductToCartDto) {
         const product = await this.productService.getOneById(addProductToCart.productId)
@@ -82,19 +85,40 @@ export class BuyerService {
         if (!charge) return new BadRequestError('Invalide data! Could not process your payment')
 
         // Creaet new order 
+        await this.orderService.createOrder({
+            userId,
+            totalAmount: cart.totalPrice,
+            chargeId: charge.id
+        })
 
         // clear the cart
         await this.cartService.cleaerCart(userId, cart._id)
-
         return charge
-
     }
 
+    async updateCustomerStripeCard(userId: string, newCardToken: string) {
+        const cart = await this.cartService.findOneByUserId(userId)
+        if (!cart) return new BadRequestError('your cart is empty')
+        if (!cart.customer_id) return new BadRequestError('could not update your card')
 
+        try {
+            await this.stripeService.customers.update(cart.customer_id, {
+                source: newCardToken
+            })
+        } catch (err) {
+            return new BadRequestError('could not update your card')
+        }
+
+        return true
+    }
 
 
 }
 
-export const buyerService = new BuyerService(cartService, productService, new Stripe(process.env.STRIPE_KEY!, {
-    apiVersion: '2022-11-15',
-}))
+export const buyerService = new BuyerService(
+    cartService,
+    productService,
+    new Stripe(process.env.STRIPE_KEY!, {
+        apiVersion: '2022-11-15',
+    },
+    ), orderService)

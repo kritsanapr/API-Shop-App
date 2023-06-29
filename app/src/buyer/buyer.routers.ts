@@ -51,4 +51,24 @@ router.post('/get/cart/', requireAuth, async (req: Request, res: Response, next:
 })
 
 
+router.post('/payment/checkout/', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+    const { cartToken } = req.body;
+
+    const result = await buyerService.checkout(req.currentUser!.userId, cartToken, req.currentUser!.email)
+    if (result instanceof CustomError) return next(result)
+
+    res.status(200).send(result)
+
+})
+
+router.post('/payment/card/update', async (req: Request, res: Response, next: NextFunction) => {
+    const { cartToken } = req.body;
+
+    const result = await buyerService.updateCustomerStripeCard(req.currentUser!.userId, req.body.cardToken)
+
+    if (result instanceof CustomError) return next(result)
+
+    res.status(200).send(result)
+})
+
 export { router as BuyerRouter }
