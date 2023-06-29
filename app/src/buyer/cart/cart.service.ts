@@ -40,6 +40,13 @@ export class CartService {
         return await this.cartModel.findOne({ _id: cartId })
     }
 
+    async cleaerCart(userId: string, cartId: string) {
+        return await this.cartModel.findOneAndUpdate({
+            _id: cartId,
+            user: userId,
+        }, { $set: { products: [], totalPrice: 0 } }, { new: true })
+    }
+
     async removeProductFromCart(removeProductFromCartDto: RemoveProductFromCartDto) {
         const { cartId, productId } = removeProductFromCartDto;
         const cartProduct = await this.cartProductModel.findOneAndDelete({ product: productId });

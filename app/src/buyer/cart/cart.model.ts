@@ -16,7 +16,8 @@ const schema: Schema = new mongoose.Schema({
         type: Number,
         default: 0,
         required: true
-    }
+    },
+    customer_id: { type: String }
 })
 
 export const Cart = mongoose.model<CartDoc, CartModel>('Cart', schema);
