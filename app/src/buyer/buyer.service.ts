@@ -84,7 +84,7 @@ export class BuyerService {
         // Creaet new order 
 
         // clear the cart
-        await this.cartService.cleaerCart(userId, cartId: cart._id)
+        await this.cartService.cleaerCart(userId, cart._id)
 
         return charge
 
